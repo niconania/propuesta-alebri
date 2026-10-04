@@ -19,6 +19,7 @@
   --radio: 22px;
   --caja: 1200px;
   --alto-cabecera: 70px;
+  --piel: #f6f4f1;
 }
 body[data-area="diseno"] { --acento: var(--azul); --acento-texto: var(--azul); --sobre-acento: #fff; }
 body[data-area="animacion"] { --acento: var(--amarillo); --acento-texto: #b07400; --sobre-acento: #111; }
@@ -103,11 +104,80 @@ body:not([data-area="todo"]) .hero-areas a:not(.activa) { opacity: .28; }
   transition: background-color .5s; animation: respirar 7s ease-in-out infinite;
 }
 @keyframes respirar { 50% { transform: scale(1.06); } }
-.hero-personajes {
-  position: relative; width: 100%; max-width: 620px; mix-blend-mode: multiply; will-change: transform;
-  -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
-  mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 62%, transparent 100%);
+/* La escena: su muñeca y sus personajes de colores */
+.hero { position: relative; }
+.escena { position: relative; width: 100%; max-width: 640px; overflow: visible; }
+.amigo { transform-box: fill-box; transform-origin: center bottom; animation: flotar 5.5s calc(var(--i) * -.9s) ease-in-out infinite; transition: opacity .45s, scale .4s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes flotar { 50% { transform: translateY(-7px); } }
+body[data-area="diseno"] .amigo:not(.amigo--diseno),
+body[data-area="animacion"] .amigo:not(.amigo--animacion),
+body[data-area="cine"] .amigo:not(.amigo--cine),
+body[data-area="contenido"] .amigo { opacity: .16; }
+body[data-area="diseno"] .amigo--diseno,
+body[data-area="animacion"] .amigo--animacion,
+body[data-area="cine"] .amigo--cine { scale: 1.06; }
+.muneca { cursor: pointer; outline: none; }
+.muneca:focus-visible .m-cara { filter: drop-shadow(0 0 8px var(--azul)); }
+.m-respira { transform-box: view-box; transform-origin: 300px 640px; animation: respirar-m 4.2s ease-in-out infinite; }
+@keyframes respirar-m { 50% { transform: scale(1.006, 1.012); } }
+.m-cara, .m-cabeza { transform-box: view-box; transform-origin: 300px 410px; transform: rotate(calc(var(--giro, 0) * 1deg)); transition: transform .45s ease-out; }
+.m-pupila { transform: translate(calc(var(--ex, -2) * 1px), calc(var(--ey, 0) * 1px)); transition: transform .18s ease-out; }
+.m-ojos { transform-box: fill-box; transform-origin: center; animation: parpadeo 5.4s 3s infinite; transition: opacity .2s; }
+@keyframes parpadeo { 0%, 95%, 100% { transform: scaleY(1); } 97.5% { transform: scaleY(.1); } }
+.m-cejas { transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
+.m-feliz, .m-risa { opacity: 0; transition: opacity .2s; }
+.m-boca { transition: opacity .2s; }
+.muneca.saludando .m-ojos, .muneca.saludando .m-boca { opacity: 0; }
+.muneca.saludando .m-feliz, .muneca.saludando .m-risa { opacity: 1; }
+.muneca.saludando .m-cejas { transform: translateY(-6px); }
+.m-brazo { transform-box: view-box; transform-origin: 384px 430px; transform: rotate(70deg); }
+.m-antebrazo { transform-box: view-box; transform-origin: 452px 438px; transform: rotate(162deg); }
+.m-mano { transform-box: view-box; transform-origin: 482px 352px; transform: rotate(-38deg); }
+.muneca.saludando .m-brazo { animation: brazo-saludo 2.2s cubic-bezier(.3, 1.1, .5, 1) both; }
+.muneca.saludando .m-antebrazo { animation: antebrazo-saludo 2.2s ease-in-out both; }
+.muneca.saludando .m-mano { animation: mano-saludo 2.2s ease-in-out both; }
+@keyframes brazo-saludo { 0% { transform: rotate(70deg); } 18%, 82% { transform: rotate(0deg); } 100% { transform: rotate(70deg); } }
+@keyframes antebrazo-saludo { 0% { transform: rotate(162deg); } 18% { transform: rotate(0deg); } 30% { transform: rotate(-16deg); } 42% { transform: rotate(12deg); } 54% { transform: rotate(-16deg); } 66% { transform: rotate(10deg); } 78% { transform: rotate(0deg); } 100% { transform: rotate(162deg); } }
+@keyframes mano-saludo { 0% { transform: rotate(-38deg); } 18% { transform: rotate(0deg); } 30% { transform: rotate(-10deg); } 42% { transform: rotate(10deg); } 54% { transform: rotate(-10deg); } 66% { transform: rotate(8deg); } 78% { transform: rotate(0deg); } 100% { transform: rotate(-38deg); } }
+.globo { opacity: 0; transform-box: fill-box; transform-origin: 30% 100%; transform: scale(.5) rotate(-6deg); transition: opacity .2s, transform .4s cubic-bezier(.3, 1.6, .5, 1); pointer-events: none; }
+.globo text { font-family: 'Outfit', sans-serif; font-size: 27px; font-weight: 800; fill: #111; }
+.escena.con-globo .globo { opacity: 1; transform: none; }
+.sello {
+  position: absolute; left: 2%; bottom: 4%; z-index: 2; display: grid; place-items: center; width: 124px; height: 124px; padding: 0;
+  border: 3px solid #111; border-radius: 50%; background: #fff; box-shadow: 0 10px 24px rgba(0, 0, 0, .12); cursor: pointer;
+  transform: rotate(-10deg); transition: transform .35s cubic-bezier(.3, 1.6, .5, 1);
 }
+.sello:hover { transform: rotate(-2deg) scale(1.07); }
+.sello img { width: 82px; height: auto; }
+.chispa {
+  position: absolute; z-index: 6; font-size: 34px; font-weight: 800; line-height: 1; pointer-events: none;
+  transform: translate(-50%, -50%) scale(.4); animation: chispa .95s cubic-bezier(.15, .7, .3, 1) forwards;
+}
+@keyframes chispa { to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15); opacity: 0; } }
+
+/* Rodillos de tragamonedas en las palabras de la portada */
+.letra { position: relative; display: inline-block; overflow: hidden; height: 1.06em; line-height: 1.06; vertical-align: top; }
+.letra-final { visibility: hidden; }
+.tira { position: absolute; left: 50%; top: 0; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, calc(var(--n) * -1.06em)); }
+.tira > span { height: 1.06em; }
+body.entrando .tira, .tira.rueda { animation: rodar var(--dur, 900ms) var(--d, 0ms) cubic-bezier(.25, .9, .3, 1.12) backwards; }
+@keyframes rodar { from { transform: translate(-50%, 0); } }
+
+/* La entrada: personajes, muñeca y firma */
+body.entrando .amigo { animation: amigo-entra .65s calc(var(--i) * 80ms + 120ms) cubic-bezier(.3, 1.5, .5, 1) backwards; }
+@keyframes amigo-entra { from { transform: scale(.3) translateY(40px); opacity: 0; } }
+body.entrando .m-sube { animation: m-subir .95s .35s cubic-bezier(.2, 1.15, .35, 1) backwards; }
+@keyframes m-subir { from { transform: translateY(640px); } }
+body.entrando .hero-circulo { animation: circulo-entra .9s .1s cubic-bezier(.3, 1.4, .5, 1) backwards; }
+@keyframes circulo-entra { from { transform: scale(0); } }
+body.entrando .sello { animation: sello-entra .6s 1s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+@keyframes sello-entra { from { transform: scale(0) rotate(-60deg); } }
+body.entrando .logo img, body.entrando .sello img {
+  -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent 55%); mask-image: linear-gradient(90deg, #000 45%, transparent 55%);
+  -webkit-mask-size: 240% 100%; mask-size: 240% 100%; animation: escribir 1.3s .3s ease-in-out backwards;
+}
+body.entrando .sello img { animation-delay: 1.2s; }
+@keyframes escribir { from { -webkit-mask-position: 100% 0; mask-position: 100% 0; } to { -webkit-mask-position: 0 0; mask-position: 0 0; } }
 
 .numeros { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 44px; border-top: 2px solid var(--tinta); }
 .numero { padding: 24px 20px 30px 0; }
@@ -343,7 +413,9 @@ dialog::backdrop { background: rgba(17, 17, 17, .72); }
   .seccion { padding: 70px 0; }
   .hero-grilla, .premios-grilla, .sobre-grilla, .contacto-grilla, .ficha-grilla { grid-template-columns: 1fr; gap: 34px; }
   .hero-arte { min-height: 0; order: -1; }
-  .hero-personajes { max-width: 460px; }
+  .escena { max-width: 460px; margin: 0 auto; }
+  .sello { width: 96px; height: 96px; }
+  .sello img { width: 64px; }
   .numeros { grid-template-columns: 1fr 1fr; }
   .numero:nth-child(3) { padding-left: 0; border-left: 0; }
   .numero:nth-child(n+3) { border-top: 1px solid var(--linea); }

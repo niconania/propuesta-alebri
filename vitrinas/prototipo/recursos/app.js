@@ -88,17 +88,6 @@
     $$('[data-contar]').forEach((el) => io.observe(el));
   }
 
-  function paralaje() {
-    const arte = $('.hero-personajes');
-    if (!arte || reducido) return;
-    let pendiente = false;
-    addEventListener('scroll', () => {
-      if (pendiente) return;
-      pendiente = true;
-      requestAnimationFrame(() => { arte.style.transform = `translateY(${Math.min(scrollY, 900) * 0.12}px)`; pendiente = false; });
-    }, { passive: true });
-  }
-
   /* ── Portada ── */
   function iniciarInicio() {
     let filtro = D.areas[location.hash.slice(1)] ? location.hash.slice(1) : 'todo';
@@ -163,8 +152,8 @@
     });
     // Pasar sobre una palabra de la portada adelanta su color.
     $$('.hero-areas a').forEach((a) => {
-      a.addEventListener('mouseenter', () => { document.body.dataset.area = a.dataset.area; });
-      a.addEventListener('mouseleave', () => { document.body.dataset.area = filtro; });
+      a.addEventListener('mouseenter', () => ponerArea(a.dataset.area));
+      a.addEventListener('mouseleave', () => ponerArea(filtro));
     });
 
     const coloresPremio = ['cine', 'cine', 'animacion'];
@@ -177,7 +166,64 @@
     pintarProyectos();
     contadores();
     revelar();
-    paralaje();
+    iniciarEntrada();
+  }
+
+  /* ── La entrada de la portada ── */
+  // Cada palabra de sus áreas llega como un rodillo de tragamonedas.
+  const LETRAS = 'abcdefhiklmnorstuvwxzñ'; // sin letras con descendente, que asomarían en la ventana
+  function rodillo(enlace, demora, vueltas, duracion) {
+    const palabra = enlace.dataset.palabra || enlace.textContent.trim();
+    enlace.dataset.palabra = palabra;
+    enlace.setAttribute('aria-label', palabra);
+    enlace.innerHTML = [...palabra].map((letra, i) => {
+      const tira = Array.from({ length: vueltas }, () => LETRAS[(Math.random() * LETRAS.length) | 0]).concat(letra);
+      return `<span class="letra" aria-hidden="true"><span class="letra-final">${letra}</span>`
+        + `<span class="tira" style="--n:${vueltas};--d:${demora + i * 45}ms;--dur:${duracion}ms">${tira.map((x) => `<span>${x}</span>`).join('')}</span></span>`;
+    }).join('');
+  }
+  function iniciarEntrada() {
+    const hero = $('.hero');
+    const palabras = $$('.hero-areas a');
+    const muneca = window.ALEBRI_MUNECA;
+    const tiempos = [];
+    const entrar = () => {
+      tiempos.forEach(clearTimeout);
+      if (reducido) return;
+      document.body.classList.remove('entrando');
+      void document.body.offsetWidth;
+      document.body.classList.add('entrando');
+      palabras.forEach((p, i) => rodillo(p, 120 + i * 130, 9, 900));
+      tiempos.push(setTimeout(() => muneca && muneca.saludar(), 1350));
+      tiempos.push(setTimeout(() => document.body.classList.remove('entrando'), 2500));
+    };
+    // Pasar sobre una palabra la vuelve a girar.
+    const ultima = new Map();
+    palabras.forEach((p) => p.addEventListener('mouseenter', () => {
+      if (reducido || document.body.classList.contains('entrando') || performance.now() - (ultima.get(p) || 0) < 700) return;
+      ultima.set(p, performance.now());
+      rodillo(p, 0, 5, 600);
+      $$('.tira', p).forEach((t) => t.classList.add('rueda'));
+    }));
+    // Un clic en el fondo suelta letras de sus colores.
+    hero.addEventListener('pointerdown', (e) => {
+      if (reducido || e.target.closest('a, button, .muneca')) return;
+      const b = hero.getBoundingClientRect();
+      const colores = ['var(--azul)', 'var(--amarillo)', 'var(--rosado)', '#111'];
+      for (let i = 0; i < 12; i++) {
+        const angulo = (i / 12) * Math.PI * 2 + Math.random() * 0.5;
+        const distancia = 60 + Math.random() * 90;
+        const chispa = document.createElement('span');
+        chispa.className = 'chispa';
+        chispa.textContent = 'alebri'[i % 6];
+        chispa.style.cssText = `left:${e.clientX - b.left}px;top:${e.clientY - b.top}px;color:${colores[i % 4]};`
+          + `--dx:${(Math.cos(angulo) * distancia).toFixed(0)}px;--dy:${(Math.sin(angulo) * distancia - 30).toFixed(0)}px;--rot:${((Math.random() - 0.5) * 260).toFixed(0)}deg`;
+        hero.appendChild(chispa);
+        setTimeout(() => chispa.remove(), 1000);
+      }
+    });
+    $('.sello').addEventListener('click', entrar);
+    entrar();
   }
 
   /* ── Contacto (no envía nada: muestra el correo que llegaría) ── */
